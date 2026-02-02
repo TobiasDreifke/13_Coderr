@@ -1,9 +1,8 @@
 from django.urls import path
-from . import views
+from .views import BusinessProfilesListView, CustomerProfilesListView, ProfileDetailView
 
 urlpatterns = [
-    # Add your API endpoints here
-    # Example:
-    # path('register/', views.register, name='register'),
-    # path('login/', views.login, name='login'),
+   path('profile/<int:user_id>/', ProfileDetailView.as_view(), name='profile-detail'),
+   path('profiles/business/', BusinessProfilesListView.as_view(), name='business-profiles'),
+   path('profiles/customer/', CustomerProfilesListView.as_view(), name='customer-profiles'),
 ]
