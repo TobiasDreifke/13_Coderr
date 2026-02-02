@@ -1,9 +1,6 @@
 from django.urls import path
-from . import views
+from .views import OfferDetailViewSet
 
 urlpatterns = [
-    # Add your API endpoints here
-    # Example:
-    # path('register/', views.register, name='register'),
-    # path('login/', views.login, name='login'),
+   path('offers/', OfferDetailViewSet.as_view(), name='offer-list-create'),
 ]
