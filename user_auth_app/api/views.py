@@ -1,28 +1,43 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserSerializer
+from rest_framework.permissions import AllowAny
+from .serializers import RegistrationSerializer, LoginSerializer
 
 
-# Example API view
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_profile(request):
-    """Get the current user's profile."""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+class RegistrationView(APIView):
+    permission_classes = [AllowAny]
 
+    def post(self, request):
+        serializer = RegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            saved_account = serializer.save()
+            token, created = Token.objects.get_or_create(user=saved_account)
+            data = {
+                "token": token.key,
+                "username": saved_account.username,
+                "email": saved_account.email,
+                "user_id": saved_account.id
+            }
+            return Response(data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Example Registration View
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def register(request):
-#     serializer = RegisterSerializer(data=request.data)
-#     if serializer.is_valid():
-#         user = serializer.save()
-#         return Response({
-#             'user': UserSerializer(user).data,
-#             'message': 'User registered successfully'
-#         }, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self,request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            data = {
+                "token": token.key,
+                "username": user.username,
+                "email": user.email,
+                "user_id": user.id
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
