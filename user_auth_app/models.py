@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -14,11 +16,11 @@ class UserProfile(models.Model):
     
     
     file = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
-    location = models.CharField(max_length=255, blank=True, null=True)
-    tel = models.CharField(max_length=20, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    working_hours = models.CharField(max_length=100, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    location = models.CharField(max_length=255, blank=True, default='')
+    tel = models.CharField(max_length=20, blank=True, default='' )
+    description = models.TextField(blank=True, default='')
+    working_hours = models.CharField(max_length=100, blank=True, default='')
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.username.username}'s profile"
