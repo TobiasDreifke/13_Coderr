@@ -1,28 +1,42 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserSerializer
+from rest_framework import generics
+from django.contrib.auth.models import User
+from .serializers import ProfileSerializer, BusinessProfileSerializer, CustomerProfileSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
 
 
-# Example API view
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_profile(request):
-    """Get the current user's profile."""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+class ProfileDetailView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+    lookup_url_kwarg = 'user_id'
 
+    def get_queryset(self):
+        return User.objects.select_related('profile').all()
 
-# Example Registration View
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def register(request):
-#     serializer = RegisterSerializer(data=request.data)
-#     if serializer.is_valid():
-#         user = serializer.save()
-#         return Response({
-#             'user': UserSerializer(user).data,
-#             'message': 'User registered successfully'
-#         }, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_object(self):
+        user_id = self.kwargs.get(self.lookup_url_kwarg)
+        return get_object_or_404(self.get_queryset(), id=user_id)
+
+    def perform_update(self, serializer):
+        if serializer.instance.id != self.request.user.id:
+            raise PermissionDenied(
+                "You do not have permission to edit this profile.")
+        serializer.save()
+        
+class BusinessProfilesListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BusinessProfileSerializer
+    
+    def get_queryset(self):
+        return User.objects.select_related('profile').filter(profile__type='business')
+    
+class CustomerProfilesListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CustomerProfileSerializer
+    
+    def get_queryset(self):
+        return User.objects.select_related('profile').filter(profile__type='customer')
+    
+
+        
