@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status, permissions, generics
-from ..models import Offer, OfferDetail
+from ..models import OfferDetail, Offer
 from .serializers import (
     OfferDetailSerializer
 )
