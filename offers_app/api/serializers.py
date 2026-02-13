@@ -63,6 +63,24 @@ class OfferSerializer(BaseOfferSerializer):
         for detail_data in details_data:
             OfferDetail.objects.create(offer=offer, **detail_data)
         return offer
+    
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', [])
+        
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+       
+        for detail_data in details_data:
+            offer_type = detail_data.get('offer_type')
+            detail = instance.details.get(offer_type=offer_type)
+            
+            for attr, value in detail_data.items():
+                setattr(detail, attr, value)
+            detail.save()
+        
+        return instance
 
 
 class OfferDetailNestedSerializer(serializers.ModelSerializer):
