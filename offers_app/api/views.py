@@ -7,8 +7,12 @@ from .serializers import (
 
 class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all().prefetch_related('details')
-    serializer_class = OfferRetrieveSerializer  
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH', 'PUT']:
+            return OfferSerializer     
+        return OfferRetrieveSerializer
 
 
 class OfferListCreateView(generics.ListCreateAPIView):
@@ -17,10 +21,11 @@ class OfferListCreateView(generics.ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return OfferSerializer    
+            return OfferSerializer
         return OfferListSerializer
+
 
 class OfferDetailRetrieveView(generics.RetrieveAPIView):
     queryset = OfferDetail.objects.all()
-    serializer_class = OfferDetailSerializer  
+    serializer_class = OfferDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
