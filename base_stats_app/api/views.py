@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 class BaseInfoView(APIView):
-    permission_classes = []  # Keine Permissions required!
+    permission_classes = []  
 
     def get(self, request):
         review_count = Review.objects.count()
