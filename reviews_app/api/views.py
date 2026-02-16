@@ -1,28 +1,33 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserSerializer
+from rest_framework import generics, permissions, filters
+# from django_filters.rest_framework import DjangoFilterBackend
+from ..models import Review
+from .serializers import ReviewSerializer, ReviewUpdateSerializer
+from .permissions import IsCustomerUser, IsReviewOwner
 
 
-# Example API view
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_profile(request):
-    """Get the current user's profile."""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+class ReviewListCreateView(generics.ListCreateAPIView):
+    queryset = Review.objects.all()
+    filter_backends = [ filters.OrderingFilter]
+    filterset_fields = ['business_user', 'reviewer']
+    ordering_fields = ['updated_at', 'rating']
+    ordering = ['-updated_at']
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return ReviewSerializer
+        return ReviewSerializer  
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated(), IsCustomerUser()]
+        return [permissions.IsAuthenticated()]
 
 
-# Example Registration View
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def register(request):
-#     serializer = RegisterSerializer(data=request.data)
-#     if serializer.is_valid():
-#         user = serializer.save()
-#         return Response({
-#             'user': UserSerializer(user).data,
-#             'message': 'User registered successfully'
-#         }, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class ReviewUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsReviewOwner]
+
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH', 'PUT']:
+            return ReviewUpdateSerializer
+        return ReviewSerializer
