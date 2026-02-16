@@ -1,28 +1,77 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status, generics
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserSerializer
+from rest_framework.views import APIView
+from django.db.models import Q
+from ..models import Order
+from .serializers import OrderSerializer, OrderUpdateSerializer, OrderCreateSerializer
+from .permissions import IsCustomerUser, IsBusinessUserForOrder
 
 
-# Example API view
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_profile(request):
-    """Get the current user's profile."""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+class OrderListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Order.objects.filter(
+            Q(customer_user=user) | Q(business_user=user)
+        )
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return OrderCreateSerializer
+        return OrderSerializer
+
+    def get_permissions(self):
+
+        if self.request.method == 'POST':
+            return [IsAuthenticated(), IsCustomerUser()]
+        return [IsAuthenticated()]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return Response(
+            OrderSerializer(order).data,
+            status=status.HTTP_201_CREATED
+        )
 
 
-# Example Registration View
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def register(request):
-#     serializer = RegisterSerializer(data=request.data)
-#     if serializer.is_valid():
-#         user = serializer.save()
-#         return Response({
-#             'user': UserSerializer(user).data,
-#             'message': 'User registered successfully'
-#         }, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class OrderUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'PATCH':
+            return OrderUpdateSerializer
+        return OrderSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            return [IsAdminUser()]
+        if self.request.method == 'PATCH':
+            return [IsAuthenticated(), IsBusinessUserForOrder()]
+        return [IsAuthenticated()]
+
+
+class OrderCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, business_user_id):
+        count = Order.objects.filter(
+            business_user_id=business_user_id,
+            status='in_progress'
+        ).count()
+        return Response({'order_count': count})
+
+
+class CompletedOrderCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, business_user_id):
+        count = Order.objects.filter(
+            business_user_id=business_user_id,
+            status='completed'
+        ).count()
+        return Response({'completed_order_count': count})
+
