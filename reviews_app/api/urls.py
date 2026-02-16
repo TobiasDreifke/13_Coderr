@@ -1,9 +1,7 @@
 from django.urls import path
-from . import views
+from .views import ReviewListCreateView, ReviewUpdateDestroyView
 
 urlpatterns = [
-    # Add your API endpoints here
-    # Example:
-    # path('register/', views.register, name='register'),
-    # path('login/', views.login, name='login'),
+    path('reviews/', ReviewListCreateView.as_view(), name='review-list-create'),
+    path('reviews/<int:pk>/', ReviewUpdateDestroyView.as_view(), name='review-update-destroy'),
 ]
