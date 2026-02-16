@@ -1,28 +1,38 @@
 from rest_framework import permissions, generics
 from ..models import OfferDetail, Offer
 from .serializers import (
-    OfferDetailSerializer, OfferSerializer, OfferListSerializer, OfferRetrieveSerializer
+    OfferDetailSerializer, OfferSerializer, 
+    OfferListSerializer, OfferRetrieveSerializer
 )
-
-
-class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Offer.objects.all().prefetch_related('details')
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.method in ['PATCH', 'PUT']:
-            return OfferSerializer     
-        return OfferRetrieveSerializer
+from .permissions import IsBusinessUser, IsOwner
 
 
 class OfferListCreateView(generics.ListCreateAPIView):
     queryset = Offer.objects.all().prefetch_related('details')
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return OfferSerializer
         return OfferListSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated(), IsBusinessUser()]
+        return [permissions.AllowAny()]
+
+
+class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Offer.objects.all().prefetch_related('details')
+
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH', 'PUT']:
+            return OfferSerializer
+        return OfferRetrieveSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsOwner()]
 
 
 class OfferDetailRetrieveView(generics.RetrieveAPIView):
