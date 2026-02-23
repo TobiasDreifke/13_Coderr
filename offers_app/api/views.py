@@ -6,6 +6,9 @@ from .serializers import (
 )
 from .permissions import IsBusinessUser, IsOwner
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from .filters import OfferFilter
 
 
 class LargeResultsSetPagination(PageNumberPagination):
@@ -18,6 +21,22 @@ class LargeResultsSetPagination(PageNumberPagination):
 class OfferListCreateView(generics.ListCreateAPIView):
     queryset = Offer.objects.all().prefetch_related('details')
     pagination_class = LargeResultsSetPagination
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
+
+    filterset_class = OfferFilter
+
+    search_fields = ['title', 'description']
+
+    ordering_fields = ['updated_at', 'min_price']
+    ordering = ['updated_at']
+
+    def get_queryset(self):
+        return Offer.objects.all().prefetch_related('details').distinct()
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
