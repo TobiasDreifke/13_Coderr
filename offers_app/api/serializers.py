@@ -17,6 +17,12 @@ class BaseOfferSerializer(serializers.ModelSerializer):
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
+    offer_type = serializers.ChoiceField(
+        choices=['basic', 'standard', 'premium'],
+        error_messages={
+            'invalid_choice': 'Ungültiger Typ. Erlaubt sind: basic, standard, premium.'
+        }
+    )
     class Meta:
         model = OfferDetail
         fields = [
@@ -29,6 +35,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             'offer_type'
         ]
         read_only_fields = ['id']
+    
 
 
 class OfferSerializer(BaseOfferSerializer):
@@ -63,23 +70,38 @@ class OfferSerializer(BaseOfferSerializer):
         for detail_data in details_data:
             OfferDetail.objects.create(offer=offer, **detail_data)
         return offer
-    
+
+
+class OfferUpdateSerializer(OfferSerializer):
+    details = OfferDetailSerializer(many=True, required=False)
+
+    def validate_details(self, value):
+        for detail in value:
+            if 'offer_type' not in detail:
+                raise serializers.ValidationError(
+                    "Jedes Detail muss einen offer_type enthalten."
+                )
+        return value
+
     def update(self, instance, validated_data):
         details_data = validated_data.pop('details', [])
-        
-        
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-       
+
         for detail_data in details_data:
             offer_type = detail_data.get('offer_type')
-            detail = instance.details.get(offer_type=offer_type)
-            
+            try:
+                detail = instance.details.get(offer_type=offer_type)
+            except OfferDetail.DoesNotExist:
+                raise serializers.ValidationError(
+                    {"details": f"Kein Detail mit offer_type '{offer_type}' gefunden."}
+                )
             for attr, value in detail_data.items():
                 setattr(detail, attr, value)
             detail.save()
-        
+
         return instance
 
 
