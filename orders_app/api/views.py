@@ -6,6 +6,9 @@ from django.db.models import Q
 from ..models import Order
 from .serializers import OrderSerializer, OrderUpdateSerializer, OrderCreateSerializer
 from .permissions import IsCustomerUser, IsBusinessUserForOrder
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class OrderListCreateView(generics.ListCreateAPIView):
@@ -58,6 +61,11 @@ class OrderCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
+        if not User.objects.filter(id=business_user_id).exists():
+            return Response(
+                {'detail': 'Business user not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         count = Order.objects.filter(
             business_user_id=business_user_id,
             status='in_progress'
@@ -69,9 +77,13 @@ class CompletedOrderCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
+        if not User.objects.filter(id=business_user_id).exists():
+            return Response(
+                {'detail': 'Business user not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         count = Order.objects.filter(
             business_user_id=business_user_id,
             status='completed'
         ).count()
         return Response({'completed_order_count': count})
-
