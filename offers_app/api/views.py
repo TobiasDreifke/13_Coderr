@@ -2,7 +2,7 @@ from rest_framework import permissions, generics
 from ..models import OfferDetail, Offer
 from .serializers import (
     OfferDetailSerializer, OfferSerializer,
-    OfferListSerializer, OfferRetrieveSerializer
+    OfferListSerializer, OfferRetrieveSerializer, OfferUpdateSerializer
 )
 from .permissions import IsBusinessUser, IsOwner
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
@@ -35,7 +35,7 @@ class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self):
         if self.request.method in ['PATCH', 'PUT']:
-            return OfferSerializer
+            return OfferUpdateSerializer
         return OfferRetrieveSerializer
 
     def get_permissions(self):
