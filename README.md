@@ -49,7 +49,10 @@ pip install -r requirements.txt
 To ensure the application runs securely and correctly, you must configure your environment variables. Never share your production SECRET_KEY publicly.
 
 Environment Variables (.env)
+```bash
+
 Create a file named .env in the root directory (the same folder as manage.py) and add the following:
+```
 ```bash
 
 Code-Snippet
@@ -88,15 +91,22 @@ python manage.py runserver
 The application will be accessible at http://127.0.0.1:8000/.
 ```
 🛠 Tech Stack
+```bash
+
 Framework: Django & Django REST Framework (DRF)
 
 Database: SQLite (default for local dev)
 
 Authentication: Token-based authentication
+```
 
 📁 Project Overview
+```bash
+
 coderr_projects/: Handles core logic for projects and offers.
 
 coderr_auth/: User management, profiles, and authentication logic.
 
 coderr/: Main project settings (settings.py, urls.py).
+```
+
