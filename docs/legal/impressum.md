@@ -24,7 +24,9 @@
 
   <h2>Hinweis zum Projekt</h2>
   <p>
-    Dieses Impressum kann fuer die Bereitstellung des von Tobias Dreifke selbst entwickelten Backend- und API-Bereichs des Projekts verwendet werden.
-    Das Frontend wurde von der Developer Akademie bereitgestellt und kann bei Bedarf um frontend-spezifische Angaben ergaenzt werden.
+    Dieses Impressum kann fuer das unter
+    <a href="https://coderr.tobiasdreifke.com">coderr.tobiasdreifke.com</a>
+    bereitgestellte Projekt verwendet werden.
+    Das Frontend wurde auf Grundlage einer Projektvorlage der Developer Akademie bereitgestellt; das Backend und die technische Integration wurden von Tobias Dreifke selbst umgesetzt.
   </p>
 </section>

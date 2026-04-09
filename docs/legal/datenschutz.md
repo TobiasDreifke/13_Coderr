@@ -21,7 +21,10 @@
 
   <h2>2. Hosting</h2>
   <p>
-    Das Backend wird bei Hetzner gehostet. Im Rahmen des Hostings werden die fuer den sicheren und stabilen Betrieb erforderlichen technischen Daten verarbeitet.
+    Das Frontend und das Backend dieser Website werden bei Hetzner gehostet und unter der Domain
+    <a href="https://coderr.tobiasdreifke.com">coderr.tobiasdreifke.com</a>
+    bereitgestellt.
+    Im Rahmen des Hostings werden die fuer den sicheren und stabilen Betrieb erforderlichen technischen Daten verarbeitet.
     Dazu koennen insbesondere IP-Adressen, Zeitpunkte von Zugriffen, aufgerufene Ressourcen, Informationen zum verwendeten Client sowie Server-Logdaten gehoeren.
   </p>
   <p>
@@ -121,7 +124,7 @@
 
   <h2>10. Hinweis zur produktiven Bereitstellung</h2>
   <p>
-    Diese Datenschutzerklaerung wurde anhand des selbst entwickelten Backends sowie der lokal vorliegenden Frontend-Version erstellt.
+    Diese Datenschutzerklaerung wurde anhand der aktuell produktiv verwendeten Server-Konfiguration, des selbst entwickelten Backends sowie der lokal vorliegenden Frontend-Version erstellt.
     Falls in der produktiven Version zusaetzliche Dienste eingebunden sind, etwa externe Schriftarten, CDNs, Karten, Videos, Captchas, Formulare von Drittanbietern oder Analyse-Werkzeuge, muss die Datenschutzerklaerung entsprechend ergaenzt werden.
   </p>
 </section>
