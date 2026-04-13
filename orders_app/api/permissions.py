@@ -11,6 +11,9 @@ class IsBusinessUserForOrder (permissions.BasePermission):
             and request.user.profile.type == 'business'
         )
 
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view) and obj.business_user == request.user
+
 
 class IsCustomerUser(permissions.BasePermission):
 
