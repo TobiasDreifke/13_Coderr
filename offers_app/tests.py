@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
+from django.urls import reverse
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from offers_app.models import Offer, OfferDetail
@@ -37,7 +39,235 @@ class OfferListPaginationTests(APITestCase):
                 )
 
     def test_offer_list_uses_documented_page_query_parameter(self):
-        response = self.client.get("/api/offers/", {"page": 2})
+        url = reverse("offer-list-create")
+        response = self.client.get(url, {"page": 2})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
+
+
+class OfferEndpointTests(APITestCase):
+    def setUp(self):
+        self.business_user = User.objects.create_user(
+            username="business_user",
+            email="business@example.com",
+            password="securepass123",
+        )
+        UserProfile.objects.create(username=self.business_user, type="business")
+
+        self.other_business = User.objects.create_user(
+            username="other_business",
+            email="other_business@example.com",
+            password="securepass123",
+        )
+        UserProfile.objects.create(username=self.other_business, type="business")
+
+        self.customer_user = User.objects.create_user(
+            username="customer_user",
+            email="customer@example.com",
+            password="securepass123",
+        )
+        UserProfile.objects.create(username=self.customer_user, type="customer")
+
+        self.offer = Offer.objects.create(
+            user=self.business_user,
+            title="Website Design",
+            description="Professional design package",
+        )
+        self.basic_detail = OfferDetail.objects.create(
+            offer=self.offer,
+            title="Basic Package",
+            revisions=2,
+            delivery_time_in_days=5,
+            price=100,
+            features=["Logo"],
+            offer_type="basic",
+        )
+        OfferDetail.objects.create(
+            offer=self.offer,
+            title="Standard Package",
+            revisions=4,
+            delivery_time_in_days=7,
+            price=200,
+            features=["Logo", "Flyer"],
+            offer_type="standard",
+        )
+        OfferDetail.objects.create(
+            offer=self.offer,
+            title="Premium Package",
+            revisions=6,
+            delivery_time_in_days=10,
+            price=300,
+            features=["Logo", "Flyer", "Brand Guide"],
+            offer_type="premium",
+        )
+
+    def authenticate(self, user):
+        token, _ = Token.objects.get_or_create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    def test_offer_create_requires_business_user(self):
+        self.authenticate(self.customer_user)
+        url = reverse("offer-list-create")
+
+        response = self.client.post(
+            url,
+            {
+                "title": "New Offer",
+                "description": "Offer description",
+                "details": [
+                    {
+                        "title": "Basic",
+                        "revisions": 1,
+                        "delivery_time_in_days": 3,
+                        "price": 50,
+                        "features": ["Feature"],
+                        "offer_type": "basic",
+                    },
+                    {
+                        "title": "Standard",
+                        "revisions": 2,
+                        "delivery_time_in_days": 5,
+                        "price": 100,
+                        "features": ["Feature"],
+                        "offer_type": "standard",
+                    },
+                    {
+                        "title": "Premium",
+                        "revisions": 3,
+                        "delivery_time_in_days": 7,
+                        "price": 150,
+                        "features": ["Feature"],
+                        "offer_type": "premium",
+                    },
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_offer_create_returns_created_offer_with_three_details(self):
+        self.authenticate(self.business_user)
+        url = reverse("offer-list-create")
+
+        response = self.client.post(
+            url,
+            {
+                "title": "New Offer",
+                "description": "Offer description",
+                "details": [
+                    {
+                        "title": "Basic",
+                        "revisions": 1,
+                        "delivery_time_in_days": 3,
+                        "price": 50,
+                        "features": ["Feature"],
+                        "offer_type": "basic",
+                    },
+                    {
+                        "title": "Standard",
+                        "revisions": 2,
+                        "delivery_time_in_days": 5,
+                        "price": 100,
+                        "features": ["Feature"],
+                        "offer_type": "standard",
+                    },
+                    {
+                        "title": "Premium",
+                        "revisions": 3,
+                        "delivery_time_in_days": 7,
+                        "price": 150,
+                        "features": ["Feature"],
+                        "offer_type": "premium",
+                    },
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data["details"]), 3)
+        self.assertEqual(response.data["min_price"], 50)
+
+    def test_offer_detail_requires_authentication(self):
+        url = reverse("offer-detail", kwargs={"pk": self.offer.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_offer_detail_returns_offer_for_authenticated_user(self):
+        self.authenticate(self.customer_user)
+        url = reverse("offer-detail", kwargs={"pk": self.offer.id})
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.offer.id)
+        self.assertEqual(len(response.data["details"]), 3)
+
+    def test_offer_patch_updates_only_owner_offer(self):
+        self.authenticate(self.business_user)
+        url = reverse("offer-detail", kwargs={"pk": self.offer.id})
+
+        response = self.client.patch(
+            url,
+            {
+                "title": "Updated Website Design",
+                "details": [
+                    {
+                        "offer_type": "basic",
+                        "title": "Updated Basic Package",
+                        "price": 120,
+                        "revisions": 3,
+                        "delivery_time_in_days": 6,
+                        "features": ["Logo", "Flyer"],
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.offer.refresh_from_db()
+        self.basic_detail.refresh_from_db()
+        self.assertEqual(self.offer.title, "Updated Website Design")
+        self.assertEqual(self.basic_detail.title, "Updated Basic Package")
+        self.assertEqual(float(self.basic_detail.price), 120.0)
+
+    def test_offer_patch_forbids_non_owner(self):
+        self.authenticate(self.other_business)
+        url = reverse("offer-detail", kwargs={"pk": self.offer.id})
+
+        response = self.client.patch(
+            url,
+            {"title": "Should not update"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_offer_delete_allows_owner(self):
+        self.authenticate(self.business_user)
+        url = reverse("offer-detail", kwargs={"pk": self.offer.id})
+
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Offer.objects.filter(id=self.offer.id).exists())
+
+    def test_offer_detail_endpoint_requires_authentication(self):
+        url = reverse("offerdetail-detail", kwargs={"pk": self.basic_detail.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_offer_detail_endpoint_returns_full_detail(self):
+        self.authenticate(self.customer_user)
+        url = reverse("offerdetail-detail", kwargs={"pk": self.basic_detail.id})
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.basic_detail.id)
+        self.assertEqual(response.data["offer_type"], "basic")
