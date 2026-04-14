@@ -82,6 +82,32 @@ Access the Django admin interface at /admin by creating a superuser:
 ```bash
 python manage.py createsuperuser
 ```
+
+## Running Tests
+
+Run the full backend test suite:
+
+```bash
+python manage.py test
+```
+
+If `python` is not available in your Windows shell, use:
+
+```bash
+py manage.py test
+```
+
+Run tests for a single app:
+
+```bash
+python manage.py test orders_app
+python manage.py test offers_app
+python manage.py test reviews_app
+python manage.py test profiles_app
+python manage.py test user_auth_app
+python manage.py test base_stats_app
+```
+
 🏃‍♂️ Running the Server
 Start the local development server:
 ```bash
