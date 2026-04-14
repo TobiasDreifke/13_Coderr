@@ -10,9 +10,12 @@ User = get_user_model()
 
 
 class BaseInfoView(APIView):
-    permission_classes = []  
+    """Return aggregated platform statistics for the landing page."""
+
+    permission_classes = []
 
     def get(self, request):
+        """Compute review, rating, business profile, and offer summary metrics."""
         review_count = Review.objects.count()
 
         average_rating = Review.objects.aggregate(

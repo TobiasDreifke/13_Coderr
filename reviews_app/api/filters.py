@@ -4,6 +4,8 @@ from reviews_app.models import Review
 
 
 class ReviewFilter(django_filters.FilterSet):
+    """Filter reviews by business user and reviewer identifiers."""
+
     business_user_id = django_filters.NumberFilter(field_name="business_user__id")
     reviewer_id = django_filters.NumberFilter(field_name="reviewer__id")
 

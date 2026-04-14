@@ -4,14 +4,14 @@ from django.contrib.auth.models import User
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    # Fields from User model
+    """Serialize combined user and profile data for profile endpoints."""
+
     user = serializers.IntegerField(source='id', read_only=True)
     username = serializers.CharField(read_only=True)
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
 
-    # Fields from UserProfile model
     file = serializers.ImageField(
         source='profile.file', required=False, allow_null=True)
     location = serializers.CharField(
@@ -33,7 +33,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
     def update(self, instance, validated_data):
-        # Update User fields
+        """Update both the Django user and the related profile record."""
         instance.first_name = validated_data.get(
             'first_name', instance.first_name)
         instance.last_name = validated_data.get(
@@ -41,7 +41,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get('email', instance.email)
         instance.save()
 
-        # Update UserProfile fields
         profile_data = validated_data.get('profile', {})
         profile = instance.profile
 
@@ -58,10 +57,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileSerializer(ProfileSerializer):
+    """Serialize only the fields exposed for business profiles."""
+
     class Meta(ProfileSerializer.Meta):
         fields = ['user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', 'description', 'working_hours', 'type']
 
 
 class CustomerProfileSerializer(ProfileSerializer):
+    """Serialize only the fields exposed for customer profiles."""
+
     class Meta(ProfileSerializer.Meta):
         fields = ['user', 'username', 'first_name', 'last_name', 'file', 'type']

@@ -12,26 +12,31 @@ User = get_user_model()
 
 
 class OrderListCreateView(generics.ListCreateAPIView):
+    """List related orders and allow customers to create new orders."""
+
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Return orders where the authenticated user is customer or business user."""
         user = self.request.user
         return Order.objects.filter(
             Q(customer_user=user) | Q(business_user=user)
         )
 
     def get_serializer_class(self):
+        """Use the creation serializer for POST and the read serializer otherwise."""
         if self.request.method == 'POST':
             return OrderCreateSerializer
         return OrderSerializer
 
     def get_permissions(self):
-
+        """Apply customer-specific permissions for order creation requests."""
         if self.request.method == 'POST':
             return [IsAuthenticated(), IsCustomerUser()]
         return [IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
+        """Create an order from an offer detail and return the full order payload."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
@@ -42,14 +47,18 @@ class OrderListCreateView(generics.ListCreateAPIView):
 
 
 class OrderUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """Retrieve, update, or delete single orders with method-specific permissions."""
+
     queryset = Order.objects.all()
 
     def get_serializer_class(self):
+        """Use the update serializer for PATCH and the read serializer otherwise."""
         if self.request.method == 'PATCH':
             return OrderUpdateSerializer
         return OrderSerializer
 
     def get_permissions(self):
+        """Restrict deletion to admins and updates to the assigned business user."""
         if self.request.method == 'DELETE':
             return [IsAdminUser()]
         if self.request.method == 'PATCH':
@@ -58,9 +67,12 @@ class OrderUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class OrderCountView(APIView):
+    """Return the number of in-progress orders for a business user."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
+        """Count in-progress orders after confirming the target user exists."""
         if not User.objects.filter(id=business_user_id).exists():
             return Response(
                 {'detail': 'Business user not found.'},
@@ -74,9 +86,12 @@ class OrderCountView(APIView):
 
 
 class CompletedOrderCountView(APIView):
+    """Return the number of completed orders for a business user."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
+        """Count completed orders after confirming the target user exists."""
         if not User.objects.filter(id=business_user_id).exists():
             return Response(
                 {'detail': 'Business user not found.'},

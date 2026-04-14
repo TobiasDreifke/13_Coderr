@@ -2,11 +2,10 @@ from rest_framework import permissions
 
 
 class IsBusinessUser(permissions.BasePermission):
-    """
-    Erlaubt nur Benutzern mit Business-Profil den Zugriff
-    """
+    """Allow access only to authenticated users with a business profile."""
 
     def has_permission(self, request, view):
+        """Check whether the requester is an authenticated business user."""
         return (
             request.user
             and request.user.is_authenticated
@@ -16,6 +15,8 @@ class IsBusinessUser(permissions.BasePermission):
 
 
 class IsOwner(permissions.BasePermission):
-    """Nur der Ersteller darf bearbeiten/löschen"""
+    """Allow modifications only for the user who owns the offer."""
+
     def has_object_permission(self, request, view, obj):
+        """Check whether the current user owns the target object."""
         return obj.user == request.user

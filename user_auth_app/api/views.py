@@ -7,9 +7,12 @@ from .serializers import RegistrationSerializer, LoginSerializer
 
 
 class RegistrationView(APIView):
+    """Register a new user account and return its authentication token."""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Create a new account when the registration payload is valid."""
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
             saved_account = serializer.save()
@@ -24,10 +27,14 @@ class RegistrationView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LoginView(APIView):
+    """Authenticate a user and return an existing or new token."""
+
     permission_classes = [AllowAny]
-    
-    def post(self,request):
+
+    def post(self, request):
+        """Validate credentials and return token-based login data."""
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']

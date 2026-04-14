@@ -9,7 +9,10 @@ from user_auth_app.models import UserProfile
 
 
 class ReviewFilterTests(APITestCase):
+    """Verify review list filtering behavior."""
+
     def setUp(self):
+        """Create users, reviews, and authentication for filter tests."""
         self.customer = User.objects.create_user(
             username="customer_user",
             email="customer@example.com",
@@ -55,6 +58,7 @@ class ReviewFilterTests(APITestCase):
         )
 
     def test_review_list_filters_by_business_user_id(self):
+        """Ensure the review list can be filtered by business user ID."""
         url = reverse("review-list-create")
         response = self.client.get(
             url,
@@ -66,6 +70,7 @@ class ReviewFilterTests(APITestCase):
         self.assertEqual(response.data[0]["id"], self.review_one.id)
 
     def test_review_list_filters_by_reviewer_id(self):
+        """Ensure the review list can be filtered by reviewer ID."""
         url = reverse("review-list-create")
         response = self.client.get(
             url,
@@ -78,7 +83,10 @@ class ReviewFilterTests(APITestCase):
 
 
 class ReviewEndpointTests(APITestCase):
+    """Verify review endpoint permissions and ownership behavior."""
+
     def setUp(self):
+        """Create users and an existing review for endpoint tests."""
         self.customer = User.objects.create_user(
             username="customer_user",
             email="customer@example.com",
@@ -108,16 +116,19 @@ class ReviewEndpointTests(APITestCase):
         )
 
     def authenticate(self, user):
+        """Authenticate the test client as the given user."""
         token, _ = Token.objects.get_or_create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
 
     def test_review_list_requires_authentication(self):
+        """Ensure the review list endpoint requires authentication."""
         url = reverse("review-list-create")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_review_create_requires_customer_user(self):
+        """Ensure only customer users can create reviews."""
         self.authenticate(self.business_user)
         url = reverse("review-list-create")
 
@@ -130,6 +141,7 @@ class ReviewEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_review_create_saves_authenticated_user_as_reviewer(self):
+        """Ensure the authenticated customer is saved as the reviewer."""
         self.authenticate(self.other_customer)
         url = reverse("review-list-create")
 
@@ -147,6 +159,7 @@ class ReviewEndpointTests(APITestCase):
         self.assertEqual(response.data["reviewer"], self.other_customer.id)
 
     def test_review_create_rejects_duplicate_review_for_same_business_user(self):
+        """Ensure duplicate reviews for the same business user are rejected."""
         self.authenticate(self.customer)
         url = reverse("review-list-create")
 
@@ -163,6 +176,7 @@ class ReviewEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_review_patch_allows_owner(self):
+        """Ensure review owners can update their reviews."""
         self.authenticate(self.customer)
         url = reverse("review-update-destroy", kwargs={"pk": self.review.id})
 
@@ -177,6 +191,7 @@ class ReviewEndpointTests(APITestCase):
         self.assertEqual(self.review.rating, 5)
 
     def test_review_patch_forbids_non_owner(self):
+        """Ensure non-owners cannot update a review."""
         self.authenticate(self.other_customer)
         url = reverse("review-update-destroy", kwargs={"pk": self.review.id})
 
@@ -189,6 +204,7 @@ class ReviewEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_review_delete_allows_owner(self):
+        """Ensure review owners can delete their reviews."""
         self.authenticate(self.customer)
         url = reverse("review-update-destroy", kwargs={"pk": self.review.id})
 

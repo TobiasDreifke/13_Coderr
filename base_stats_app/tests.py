@@ -9,7 +9,10 @@ from user_auth_app.models import UserProfile
 
 
 class BaseInfoTests(APITestCase):
+    """Verify the aggregated base statistics endpoint."""
+
     def setUp(self):
+        """Create users, offers, and reviews used in stats aggregation tests."""
         self.business_user = User.objects.create_user(
             username="business_user",
             email="business@example.com",
@@ -65,6 +68,7 @@ class BaseInfoTests(APITestCase):
         )
 
     def test_base_info_returns_aggregated_platform_stats(self):
+        """Ensure the base info endpoint returns the expected aggregate counts."""
         url = reverse("base-info")
         response = self.client.get(url)
 

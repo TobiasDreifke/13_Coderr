@@ -8,7 +8,10 @@ from user_auth_app.models import UserProfile
 
 
 class AuthenticationTests(APITestCase):
+    """Cover registration and login behavior for token authentication."""
+
     def test_registration_creates_user_profile_and_returns_token(self):
+        """Ensure registration creates both the user profile and auth token."""
         url = reverse("register")
         payload = {
             "username": "new_customer",
@@ -30,6 +33,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(response.data["user_id"], user.id)
 
     def test_registration_rejects_mismatched_passwords(self):
+        """Ensure registration fails when password confirmation does not match."""
         url = reverse("register")
         payload = {
             "username": "invalid_customer",
@@ -45,6 +49,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(User.objects.filter(username="invalid_customer").count(), 0)
 
     def test_login_returns_existing_token_and_user_data(self):
+        """Ensure login returns token and user data for valid credentials."""
         url = reverse("login")
         user = User.objects.create_user(
             username="existing_user",
@@ -66,6 +71,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(response.data["user_id"], user.id)
 
     def test_login_rejects_invalid_credentials(self):
+        """Ensure login rejects an invalid username and password combination."""
         url = reverse("login")
         user = User.objects.create_user(
             username="existing_user",

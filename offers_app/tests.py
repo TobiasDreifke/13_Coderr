@@ -9,7 +9,10 @@ from user_auth_app.models import UserProfile
 
 
 class OfferListPaginationTests(APITestCase):
+    """Verify pagination behavior for the offer list endpoint."""
+
     def setUp(self):
+        """Create enough offers to exercise pagination behavior."""
         business_user = User.objects.create_user(
             username="business_user",
             email="business@example.com",
@@ -39,6 +42,7 @@ class OfferListPaginationTests(APITestCase):
                 )
 
     def test_offer_list_uses_documented_page_query_parameter(self):
+        """Ensure the offer list uses the documented page query parameter."""
         url = reverse("offer-list-create")
         response = self.client.get(url, {"page": 2})
 
@@ -47,7 +51,10 @@ class OfferListPaginationTests(APITestCase):
 
 
 class OfferEndpointTests(APITestCase):
+    """Verify create, retrieve, update, and delete offer endpoints."""
+
     def setUp(self):
+        """Create users, an offer, and nested details for endpoint tests."""
         self.business_user = User.objects.create_user(
             username="business_user",
             email="business@example.com",
@@ -103,10 +110,12 @@ class OfferEndpointTests(APITestCase):
         )
 
     def authenticate(self, user):
+        """Authenticate the test client as the given user."""
         token, _ = Token.objects.get_or_create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
 
     def test_offer_create_requires_business_user(self):
+        """Ensure customers cannot create offers."""
         self.authenticate(self.customer_user)
         url = reverse("offer-list-create")
 
@@ -148,6 +157,7 @@ class OfferEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_offer_create_returns_created_offer_with_three_details(self):
+        """Ensure a business user can create an offer with three details."""
         self.authenticate(self.business_user)
         url = reverse("offer-list-create")
 
@@ -191,12 +201,14 @@ class OfferEndpointTests(APITestCase):
         self.assertEqual(response.data["min_price"], 50)
 
     def test_offer_detail_requires_authentication(self):
+        """Ensure the offer detail endpoint requires authentication."""
         url = reverse("offer-detail", kwargs={"pk": self.offer.id})
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_offer_detail_returns_offer_for_authenticated_user(self):
+        """Ensure authenticated users can retrieve an offer with all details."""
         self.authenticate(self.customer_user)
         url = reverse("offer-detail", kwargs={"pk": self.offer.id})
 
@@ -207,6 +219,7 @@ class OfferEndpointTests(APITestCase):
         self.assertEqual(len(response.data["details"]), 3)
 
     def test_offer_patch_updates_only_owner_offer(self):
+        """Ensure the owner can update an offer and one nested detail."""
         self.authenticate(self.business_user)
         url = reverse("offer-detail", kwargs={"pk": self.offer.id})
 
@@ -236,6 +249,7 @@ class OfferEndpointTests(APITestCase):
         self.assertEqual(float(self.basic_detail.price), 120.0)
 
     def test_offer_patch_forbids_non_owner(self):
+        """Ensure non-owners cannot update another user's offer."""
         self.authenticate(self.other_business)
         url = reverse("offer-detail", kwargs={"pk": self.offer.id})
 
@@ -248,6 +262,7 @@ class OfferEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_offer_delete_allows_owner(self):
+        """Ensure the owner can delete an offer."""
         self.authenticate(self.business_user)
         url = reverse("offer-detail", kwargs={"pk": self.offer.id})
 
@@ -257,12 +272,14 @@ class OfferEndpointTests(APITestCase):
         self.assertFalse(Offer.objects.filter(id=self.offer.id).exists())
 
     def test_offer_detail_endpoint_requires_authentication(self):
+        """Ensure the nested offer detail endpoint requires authentication."""
         url = reverse("offerdetail-detail", kwargs={"pk": self.basic_detail.id})
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_offer_detail_endpoint_returns_full_detail(self):
+        """Ensure the nested offer detail endpoint returns full detail data."""
         self.authenticate(self.customer_user)
         url = reverse("offerdetail-detail", kwargs={"pk": self.basic_detail.id})
 

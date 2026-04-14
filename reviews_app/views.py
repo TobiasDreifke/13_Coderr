@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+"""Reviews app placeholder views module."""

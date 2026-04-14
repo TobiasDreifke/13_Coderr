@@ -3,6 +3,8 @@ from django.conf import settings
 
 
 class Offer(models.Model):
+    """Represent a service offer created by a business user."""
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -15,10 +17,13 @@ class Offer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return the offer title for admin and debug output."""
         return self.title
 
 
 class OfferDetail(models.Model):
+    """Represent a specific pricing tier inside an offer."""
+
     OFFER_TYPE_CHOICES = [
         ('basic', 'Basic'),
         ('standard', 'Standard'),
@@ -41,4 +46,5 @@ class OfferDetail(models.Model):
         unique_together = ['offer', 'offer_type']
 
     def __str__(self):
+        """Return a readable label for the offer detail tier."""
         return f"{self.offer.title} - {self.offer_type}"

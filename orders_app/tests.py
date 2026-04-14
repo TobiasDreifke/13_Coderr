@@ -10,7 +10,10 @@ from user_auth_app.models import UserProfile
 
 
 class OrderPermissionTests(APITestCase):
+    """Verify order update permissions for assigned business users."""
+
     def setUp(self):
+        """Create users and a sample order for permission tests."""
         self.customer = User.objects.create_user(
             username="customer_user",
             email="customer@example.com",
@@ -45,6 +48,7 @@ class OrderPermissionTests(APITestCase):
         )
 
     def test_only_assigned_business_user_can_patch_order(self):
+        """Ensure unrelated business users cannot update the order status."""
         url = reverse("order-update-destroy", kwargs={"pk": self.order.id})
         token = Token.objects.create(user=self.other_business)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
@@ -58,6 +62,7 @@ class OrderPermissionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_assigned_business_user_can_patch_order(self):
+        """Ensure the assigned business user can update the order status."""
         url = reverse("order-update-destroy", kwargs={"pk": self.order.id})
         token = Token.objects.create(user=self.business_owner)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
@@ -74,7 +79,10 @@ class OrderPermissionTests(APITestCase):
 
 
 class OrderEndpointTests(APITestCase):
+    """Verify order listing, creation, deletion, and count endpoints."""
+
     def setUp(self):
+        """Create users, offer details, and orders used by endpoint tests."""
         self.customer = User.objects.create_user(
             username="customer_user",
             email="customer@example.com",
@@ -142,10 +150,12 @@ class OrderEndpointTests(APITestCase):
         )
 
     def authenticate(self, user):
+        """Authenticate the test client as the given user."""
         token, _ = Token.objects.get_or_create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
 
     def test_order_list_returns_only_orders_related_to_authenticated_user(self):
+        """Ensure users only see orders where they are directly involved."""
         self.authenticate(self.customer)
         url = reverse("order-list-create")
 
@@ -156,6 +166,7 @@ class OrderEndpointTests(APITestCase):
         self.assertEqual(response.data[0]["id"], self.order.id)
 
     def test_order_create_requires_customer_user(self):
+        """Ensure only customer users can create orders."""
         self.authenticate(self.business_owner)
         url = reverse("order-list-create")
 
@@ -168,6 +179,7 @@ class OrderEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_order_create_copies_offer_detail_into_order(self):
+        """Ensure order creation copies the selected offer detail fields."""
         self.authenticate(self.customer)
         url = reverse("order-list-create")
 
@@ -184,6 +196,7 @@ class OrderEndpointTests(APITestCase):
         self.assertEqual(response.data["status"], "in_progress")
 
     def test_order_delete_requires_admin_user(self):
+        """Ensure non-admin users cannot delete orders."""
         self.authenticate(self.business_owner)
         url = reverse("order-update-destroy", kwargs={"pk": self.order.id})
 
@@ -192,6 +205,7 @@ class OrderEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_order_delete_allows_admin_user(self):
+        """Ensure admin users can delete orders."""
         admin_user = User.objects.create_user(
             username="admin_user",
             email="admin@example.com",
@@ -208,6 +222,7 @@ class OrderEndpointTests(APITestCase):
         self.assertFalse(Order.objects.filter(id=self.order.id).exists())
 
     def test_order_count_returns_in_progress_orders_for_business_user(self):
+        """Ensure the in-progress count endpoint returns the expected value."""
         self.authenticate(self.customer)
         url = reverse("order-count", kwargs={"business_user_id": self.business_owner.id})
 
@@ -217,6 +232,7 @@ class OrderEndpointTests(APITestCase):
         self.assertEqual(response.data["order_count"], 1)
 
     def test_completed_order_count_returns_completed_orders_for_business_user(self):
+        """Ensure the completed count endpoint returns the expected value."""
         self.authenticate(self.customer)
         url = reverse(
             "completed-order-count",

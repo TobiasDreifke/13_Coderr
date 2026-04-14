@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+"""User auth app placeholder views module."""

@@ -2,7 +2,8 @@ from django.db import models
 from django.conf import settings
 
 
-class Order(models.Model): 
+class Order(models.Model):
+    """Represent a customer order created from an offer detail."""
 
     STATUS_CHOICES = [
         ('in_progress', 'In Progress'),
@@ -43,4 +44,5 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a readable identifier for the order instance."""
         return f"Order #{self.id} - {self.title}"

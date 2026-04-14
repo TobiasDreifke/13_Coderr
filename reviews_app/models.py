@@ -4,6 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Review(models.Model):
+    """Represent a customer review left for a business user."""
+
     business_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -25,4 +27,5 @@ class Review(models.Model):
         unique_together = ['business_user', 'reviewer']
 
     def __str__(self):
+        """Return a readable identifier for the review instance."""
         return f"Review by {self.reviewer} for {self.business_user} - {self.rating}★"

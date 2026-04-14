@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
+    """Store account type and public profile data for a user."""
+
     TYPE_CHOICES = [
         ('customer', 'Customer'),
         ('business', 'Business'),
@@ -23,4 +25,5 @@ class UserProfile(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
+        """Return a readable identifier for the related user profile."""
         return f"{self.username.username}'s profile"

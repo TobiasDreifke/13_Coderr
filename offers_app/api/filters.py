@@ -3,6 +3,8 @@ from ..models import Offer
 
 
 class OfferFilter(django_filters.FilterSet):
+    """Filter offers by creator, price floor, and delivery time."""
+
     creator_id = django_filters.NumberFilter(field_name="user__id")
 
     min_price = django_filters.NumberFilter(
