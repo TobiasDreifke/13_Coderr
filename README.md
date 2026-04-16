@@ -77,6 +77,14 @@ Run Migrations:
 python manage.py makemigrations
 python manage.py migrate
 ```
+
+The migration step also seeds the demo guest accounts used by the frontend login:
+
+```text
+customer: andrey / asdasd
+business: kevin / asdasd24
+```
+
 Create Admin User (Optional):
 Access the Django admin interface at /admin by creating a superuser:
 ```bash
@@ -106,6 +114,29 @@ python manage.py test reviews_app
 python manage.py test profiles_app
 python manage.py test user_auth_app
 python manage.py test base_stats_app
+```
+
+## Production Gunicorn Service
+
+For the Hetzner deployment used in this project, a ready-to-copy `systemd` unit is provided at:
+
+```bash
+deploy/systemd/coderr-gunicorn.service
+```
+
+Install and enable it on the server:
+
+```bash
+sudo cp deploy/systemd/coderr-gunicorn.service /etc/systemd/system/coderr-gunicorn.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now coderr-gunicorn
+sudo systemctl status coderr-gunicorn --no-pager
+```
+
+If an old manually started Gunicorn process is still running, stop it first:
+
+```bash
+sudo pkill -f "gunicorn core.wsgi:application"
 ```
 
 🏃‍♂️ Running the Server

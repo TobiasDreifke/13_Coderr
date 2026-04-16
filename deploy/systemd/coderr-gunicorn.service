@@ -1,0 +1,14 @@
+[Unit]
+Description=Coderr Gunicorn Service
+After=network.target
+
+[Service]
+User=tobse
+Group=www-data
+WorkingDirectory=/home/tobse/projects/13_Coderr
+ExecStart=/home/tobse/projects/13_Coderr/.venv/bin/gunicorn core.wsgi:application --bind 127.0.0.1:8000 --workers 3
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -10,6 +10,17 @@ from user_auth_app.models import UserProfile
 class AuthenticationTests(APITestCase):
     """Cover registration and login behavior for token authentication."""
 
+    def test_guest_users_exist_with_expected_profiles(self):
+        """Ensure the seeded guest accounts are present in fresh databases."""
+        customer_user = User.objects.get(username="andrey")
+        business_user = User.objects.get(username="kevin")
+
+        self.assertTrue(customer_user.check_password("asdasd"))
+        self.assertEqual(customer_user.profile.type, "customer")
+
+        self.assertTrue(business_user.check_password("asdasd24"))
+        self.assertEqual(business_user.profile.type, "business")
+
     def test_registration_creates_user_profile_and_returns_token(self):
         """Ensure registration creates both the user profile and auth token."""
         url = reverse("register")
