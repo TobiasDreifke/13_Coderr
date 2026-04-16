@@ -58,6 +58,34 @@ DEMO_USERS = [
             "description": "Ich buche Leistungen fuer kleine Produktteams und MVPs.",
         },
     },
+    {
+        "username": "noah_backend",
+        "password": "demo12345",
+        "email": "noah@example.com",
+        "first_name": "Noah",
+        "last_name": "Fischer",
+        "profile": {
+            "type": "business",
+            "location": "Koeln",
+            "tel": "+49 221 555 0111",
+            "working_hours": "Mo-Fr 08:30-16:30",
+            "description": "Backend und Automations-Fokus fuer interne Tools, APIs und Datenfluesse.",
+        },
+    },
+    {
+        "username": "sophie_seo",
+        "password": "demo12345",
+        "email": "sophie@example.com",
+        "first_name": "Sophie",
+        "last_name": "Wagner",
+        "profile": {
+            "type": "business",
+            "location": "Muenchen",
+            "tel": "+49 89 555 0164",
+            "working_hours": "Di-Sa 09:00-17:00",
+            "description": "SEO, Content-Struktur und Conversion-orientierte Website-Optimierung.",
+        },
+    },
 ]
 
 
@@ -113,6 +141,52 @@ class Command(BaseCommand):
             ],
         )
 
+        noah_offer = self.ensure_offer(
+            user=users["noah_backend"],
+            title="Custom API Integration",
+            description="Planung und Umsetzung belastbarer Schnittstellen fuer Webapps und interne Systeme.",
+            details=[
+                self.detail_payload("basic", "Webhook Setup", 2, 4, "549.00", [
+                    "Ein externer Dienst",
+                    "Webhook-Verarbeitung",
+                    "Basis-Logging",
+                ]),
+                self.detail_payload("standard", "API Workflow", 3, 7, "1199.00", [
+                    "Mehrere Endpunkte",
+                    "Validierung",
+                    "Fehlerhandling",
+                ]),
+                self.detail_payload("premium", "System Integration", 5, 12, "2290.00", [
+                    "Mehrsystem-Anbindung",
+                    "Retry-Logik",
+                    "Monitoring",
+                ]),
+            ],
+        )
+
+        sophie_offer = self.ensure_offer(
+            user=users["sophie_seo"],
+            title="SEO Landing Page Upgrade",
+            description="Struktur, Texte und Onpage-Optimierung fuer mehr Sichtbarkeit und bessere Conversion.",
+            details=[
+                self.detail_payload("basic", "SEO Audit Light", 2, 3, "349.00", [
+                    "Keyword-Check",
+                    "Meta-Optimierung",
+                    "Kurzbericht",
+                ]),
+                self.detail_payload("standard", "Landing Page Refresh", 3, 5, "790.00", [
+                    "Headline-Optimierung",
+                    "Informationsarchitektur",
+                    "CTA-Verbesserung",
+                ]),
+                self.detail_payload("premium", "Conversion SEO Package", 4, 8, "1390.00", [
+                    "Komplette Seitenueberarbeitung",
+                    "Keyword-Mapping",
+                    "Content-Briefing",
+                ]),
+            ],
+        )
+
         self.ensure_order(
             customer_user=users["andrey"],
             business_user=users["kevin"],
@@ -156,6 +230,18 @@ class Command(BaseCommand):
             reviewer=users["mira_pm"],
             rating=4,
             description="Starkes Gespuer fuer Stil und ein sehr strukturiertes Design-Hand-off.",
+        )
+        self.ensure_review(
+            business_user=users["noah_backend"],
+            reviewer=users["andrey"],
+            rating=5,
+            description="Technisch sehr sauber, gutes API-Design und klare Kommunikation im Projekt.",
+        )
+        self.ensure_review(
+            business_user=users["sophie_seo"],
+            reviewer=users["mira_pm"],
+            rating=4,
+            description="Schnelle SEO-Verbesserungen mit sofort verstaendlichen Empfehlungen.",
         )
 
         self.stdout.write(self.style.SUCCESS("Demo content seeded successfully."))
