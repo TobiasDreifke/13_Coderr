@@ -85,6 +85,12 @@ customer: andrey / asdasd
 business: kevin / asdasd24
 ```
 
+Optional demo content for offers, orders, and reviews can be seeded with:
+
+```bash
+python manage.py seed_demo_content
+```
+
 Create Admin User (Optional):
 Access the Django admin interface at /admin by creating a superuser:
 ```bash

@@ -1,9 +1,13 @@
 from django.contrib.auth.models import User
+from django.core.management import call_command
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
+from offers_app.models import Offer
+from orders_app.models import Order
+from reviews_app.models import Review
 from user_auth_app.models import UserProfile
 
 
@@ -20,6 +24,16 @@ class AuthenticationTests(APITestCase):
 
         self.assertTrue(business_user.check_password("asdasd24"))
         self.assertEqual(business_user.profile.type, "business")
+
+    def test_seed_demo_content_creates_demo_data_idempotently(self):
+        """Ensure the demo seed command creates stable sample data."""
+        call_command("seed_demo_content")
+        call_command("seed_demo_content")
+
+        self.assertTrue(User.objects.filter(username="lara_design").exists())
+        self.assertEqual(Offer.objects.count(), 2)
+        self.assertEqual(Order.objects.count(), 2)
+        self.assertEqual(Review.objects.count(), 2)
 
     def test_registration_creates_user_profile_and_returns_token(self):
         """Ensure registration creates both the user profile and auth token."""
