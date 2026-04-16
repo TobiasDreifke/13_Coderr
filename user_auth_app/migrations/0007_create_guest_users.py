@@ -23,7 +23,7 @@ def create_guest_users(apps, schema_editor):
         user, created = user_model.objects.get_or_create(
             username=guest_user["username"]
         )
-        if created or not user.has_usable_password():
+        if created or not user.password:
             user.set_password(guest_user["password"])
             user.save(update_fields=["password"])
 
