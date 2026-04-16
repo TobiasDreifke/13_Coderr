@@ -30,10 +30,10 @@ class AuthenticationTests(APITestCase):
         call_command("seed_demo_content")
         call_command("seed_demo_content")
 
-        self.assertTrue(User.objects.filter(username="lara_design").exists())
-        self.assertEqual(Offer.objects.count(), 2)
+        self.assertTrue(User.objects.filter(username="sophie_seo").exists())
+        self.assertEqual(Offer.objects.count(), 4)
         self.assertEqual(Order.objects.count(), 2)
-        self.assertEqual(Review.objects.count(), 2)
+        self.assertEqual(Review.objects.count(), 4)
 
     def test_registration_creates_user_profile_and_returns_token(self):
         """Ensure registration creates both the user profile and auth token."""
