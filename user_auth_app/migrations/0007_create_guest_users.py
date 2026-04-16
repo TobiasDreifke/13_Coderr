@@ -1,4 +1,5 @@
 from django.db import migrations
+from django.contrib.auth.hashers import make_password
 
 
 GUEST_USERS = [
@@ -24,7 +25,7 @@ def create_guest_users(apps, schema_editor):
             username=guest_user["username"]
         )
         if created or not user.password:
-            user.set_password(guest_user["password"])
+            user.password = make_password(guest_user["password"])
             user.save(update_fields=["password"])
 
         profile_model.objects.get_or_create(
