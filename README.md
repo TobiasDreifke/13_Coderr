@@ -91,6 +91,18 @@ Optional demo content for offers, orders, and reviews can be seeded with:
 python manage.py seed_demo_content
 ```
 
+The demo seed command also copies bundled SVG demo assets into `MEDIA_ROOT` and assigns them to demo profiles and offers.
+
+For production, nginx must serve `/media/` from the backend media directory, for example:
+
+```nginx
+location /media/ {
+    alias /home/tobse/projects/13_Coderr/media/;
+}
+```
+
+Ensure the application user has write access to the media directory.
+
 Create Admin User (Optional):
 Access the Django admin interface at /admin by creating a superuser:
 ```bash
