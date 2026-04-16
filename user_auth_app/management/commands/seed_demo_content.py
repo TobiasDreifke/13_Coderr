@@ -1,3 +1,7 @@
+import shutil
+from pathlib import Path
+
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
@@ -14,6 +18,7 @@ DEMO_USERS = [
         "email": "andrey@example.com",
         "first_name": "Andrey",
         "last_name": "Keller",
+        "profile_image": "profile_pictures/andrey.svg",
         "profile": {
             "type": "customer",
             "description": "Ich suche schnelle und saubere Hilfe fuer Webprojekte.",
@@ -25,6 +30,7 @@ DEMO_USERS = [
         "email": "kevin@example.com",
         "first_name": "Kevin",
         "last_name": "Brandt",
+        "profile_image": "profile_pictures/kevin.svg",
         "profile": {
             "type": "business",
             "location": "Berlin",
@@ -39,6 +45,7 @@ DEMO_USERS = [
         "email": "lara@example.com",
         "first_name": "Lara",
         "last_name": "Neumann",
+        "profile_image": "profile_pictures/lara.svg",
         "profile": {
             "type": "business",
             "location": "Hamburg",
@@ -53,6 +60,7 @@ DEMO_USERS = [
         "email": "mira@example.com",
         "first_name": "Mira",
         "last_name": "Scholz",
+        "profile_image": "profile_pictures/mira.svg",
         "profile": {
             "type": "customer",
             "description": "Ich buche Leistungen fuer kleine Produktteams und MVPs.",
@@ -64,6 +72,7 @@ DEMO_USERS = [
         "email": "noah@example.com",
         "first_name": "Noah",
         "last_name": "Fischer",
+        "profile_image": "profile_pictures/noah.svg",
         "profile": {
             "type": "business",
             "location": "Koeln",
@@ -78,6 +87,7 @@ DEMO_USERS = [
         "email": "sophie@example.com",
         "first_name": "Sophie",
         "last_name": "Wagner",
+        "profile_image": "profile_pictures/sophie.svg",
         "profile": {
             "type": "business",
             "location": "Muenchen",
@@ -93,12 +103,15 @@ class Command(BaseCommand):
     help = "Seed idempotent demo users, offers, orders, and reviews."
 
     def handle(self, *args, **options):
+        self.demo_media_dir = Path(__file__).resolve().parents[2] / "demo_media"
+        self.media_root = Path(settings.MEDIA_ROOT)
         users = {user["username"]: self.ensure_user(user) for user in DEMO_USERS}
 
-        kevin_offer = self.ensure_offer(
+        self.ensure_offer(
             user=users["kevin"],
             title="Business Website Sprint",
             description="Moderne Firmenwebsite mit Kontaktbereich, responsivem Layout und sauberem Setup.",
+            image_name="offers/business-website-sprint.svg",
             details=[
                 self.detail_payload("basic", "Starter Onepager", 2, 5, "699.00", [
                     "Onepager mit Kontaktbereich",
@@ -118,10 +131,11 @@ class Command(BaseCommand):
             ],
         )
 
-        lara_offer = self.ensure_offer(
+        self.ensure_offer(
             user=users["lara_design"],
             title="Branding and UI Kit",
             description="Visuelle Identitaet mit Komponentenbibliothek fuer Produktseiten und Dashboards.",
+            image_name="offers/branding-ui-kit.svg",
             details=[
                 self.detail_payload("basic", "Mini Brand Kit", 2, 4, "499.00", [
                     "Farbsystem",
@@ -141,10 +155,11 @@ class Command(BaseCommand):
             ],
         )
 
-        noah_offer = self.ensure_offer(
+        self.ensure_offer(
             user=users["noah_backend"],
             title="Custom API Integration",
             description="Planung und Umsetzung belastbarer Schnittstellen fuer Webapps und interne Systeme.",
+            image_name="offers/custom-api-integration.svg",
             details=[
                 self.detail_payload("basic", "Webhook Setup", 2, 4, "549.00", [
                     "Ein externer Dienst",
@@ -164,10 +179,11 @@ class Command(BaseCommand):
             ],
         )
 
-        sophie_offer = self.ensure_offer(
+        self.ensure_offer(
             user=users["sophie_seo"],
             title="SEO Landing Page Upgrade",
             description="Struktur, Texte und Onpage-Optimierung fuer mehr Sichtbarkeit und bessere Conversion.",
+            image_name="offers/seo-landing-page-upgrade.svg",
             details=[
                 self.detail_payload("basic", "SEO Audit Light", 2, 3, "349.00", [
                     "Keyword-Check",
@@ -268,17 +284,19 @@ class Command(BaseCommand):
         )
         for key, value in payload["profile"].items():
             setattr(profile, key, value)
+        profile.file.name = self.ensure_demo_asset(payload["profile_image"])
         profile.save()
         return user
 
-    def ensure_offer(self, user, title, description, details):
+    def ensure_offer(self, user, title, description, image_name, details):
         offer, _ = Offer.objects.get_or_create(
             user=user,
             title=title,
             defaults={"description": description},
         )
         offer.description = description
-        offer.save(update_fields=["description"])
+        offer.image.name = self.ensure_demo_asset(image_name)
+        offer.save(update_fields=["description", "image"])
 
         for detail in details:
             detail_obj, _ = OfferDetail.objects.get_or_create(
@@ -337,3 +355,11 @@ class Command(BaseCommand):
             "price": price,
             "features": features,
         }
+
+    def ensure_demo_asset(self, relative_path):
+        source = self.demo_media_dir / relative_path
+        target = self.media_root / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists():
+            shutil.copyfile(source, target)
+        return relative_path
